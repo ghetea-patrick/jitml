@@ -49,7 +49,7 @@ The BNN is shown as the final MNN stage in the TGP sequence. Its specific runtim
 ### Task Generation Flow
 
 ```mermaid
-flowchart LR
+flowchart TB
     Context["Context"] --> SNN["Shape-network (SNN)"]
     SNN --> ANN["Activation-network (ANN)"]
     ANN --> WNN["Weight-network (WNN)"]
