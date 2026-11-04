@@ -105,8 +105,6 @@ Each MNN is trained separately:
 
 For each MNN, the training process is followed by the same candidate-generation and selection stages used in the TGP: Campaign, Voting, and In Office. The resulting networks form the updated MNN suite.
 
-Once the new MNN suite is ready, it is tested against the existing context–TNN pairs to ensure that performance has not degraded. As an additional safeguard, it is evaluated using the same criteria outlined in the TGP.
-
 ### Meta Training Flow
 
 ```mermaid
