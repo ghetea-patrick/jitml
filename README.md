@@ -127,7 +127,4 @@ flowchart TD
     ANN --> Suite
     WNN --> Suite
     BNN --> Suite
-
-    Suite --> Validation["Test against existing context–TNN pairs"]
-    Validation --> Criteria["Apply TGP evaluation criteria"]
 ```
