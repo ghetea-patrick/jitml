@@ -102,8 +102,6 @@ The lifecycle of a task-network (TNN) within JITML operates on continuous feedba
     (3) Weight-Network (WNN) & Binary-Network (BNN):
         Follow the same training principle, resulting in more refined weight and bias selections.
 
-    Once the new MNN suite is ready, it is tested against current pairs of TNNs and contexts to ensure performance has not degraded. As an additional safety measure, it is passed through the same criteria outlined in the TGP.
-
 ╭───────────────────────────────────╮   ╭───────────────────────────────────╮
 │ Past Context                      │ + │                TNN                │
 ╰───────────────────────────────────╯   ╰───────────────────────────────────╯
