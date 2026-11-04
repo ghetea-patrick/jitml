@@ -1,28 +1,29 @@
 from dataclasses import dataclass
-
-from envdef import Env
-from netdef import Ann, Bnn, Snn, Wnn, Que, Tnn
-from stepdef import Step
+from envdef      import Env
+from netdef      import Ann, Bnn, Snn, Wnn, Que, Siamese, Tnn
+from stepdef     import Step
 
 
 @dataclass
 class Ctx:
-    runme: bool = True
+    runme   : bool   = True
 
-    every: int = 32
-    ticks: int = 64
-    clock: int = 0
+    every   : int    = 3
+    ticks   : int    = 7
+    clock   : int    = 0
+    tnnum   : int    = 7
+    mnnum   : int    = 7
 
-    myenv: Env = Env()
+    myque   : Que    = []
+    okque   : Que    = []
+    dfque   : Que    = [Tnn()]
 
-    myque: Que = []
-    okque: Que = []
-    dfque: Que = [Tnn()]
-
-    mysnn: Snn = Snn()
-    myann: Ann = Ann()
-    mywnn: Wnn = Wnn()
-    mybnn: Bnn = Bnn()
+    myenv   : Env    = Env()
+    mysnn   : Snn    = Snn()
+    myann   : Ann    = Ann()
+    mywnn   : Wnn    = Wnn()
+    mybnn   : Bnn    = Bnn()
+    siamese: Siamese = Siamese()
 
 
 def jitml(ctx: Ctx) -> None:

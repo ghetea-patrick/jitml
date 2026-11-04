@@ -1,7 +1,6 @@
-from torch import Tensor
-
+from   torch  import Tensor
+from   envdef import Move
 import defval
-from envdef import Move
 
 type Mnn = Snn | Ann | Wnn | Bnn
 type Que = list[Tnn]
@@ -9,8 +8,6 @@ type Que = list[Tnn]
 type Grid[T] = list[list[T]]
 type Cube[T] = list[Grid[T]]
 type Tess[T] = list[Cube[T]]
-
-type Ten = Tensor
 
 
 class Net:
@@ -36,7 +33,7 @@ class Net:
         self.lifelimit = lifelimit
         self.goodmatch = goodmatch
 
-    def forward(self, ten: Ten) -> ...:
+    def forward(self, ten: Tensor) -> ...:
         ...
 
     def trainme(self, que: Que) -> ...:
@@ -63,7 +60,7 @@ class Tnn(Net):
             biasvalue or defval.TNN_BIASVALUE,
             currinput or [],
             pastinput or [],
-            lifescore or 10,
+            lifescore or 42,
             lifelimit or 0,
             goodmatch or False)
 
@@ -91,7 +88,7 @@ class Snn(Net):
             biasvalue or defval.SNN_BIASVALUE,
             currinput or [],
             pastinput or [],
-            lifescore or 10,
+            lifescore or 42,
             lifelimit or 0,
             goodmatch or False)
 
@@ -119,12 +116,13 @@ class Ann(Net):
             biasvalue or defval.ANN_BIASVALUE,
             currinput or [],
             pastinput or [],
-            lifescore or 10,
+            lifescore or 42,
             lifelimit or 0,
             goodmatch or False)
 
     def gen_activfunc(self) -> list:
         ...
+
 
 class Wnn(Net):
     def __init__(
@@ -146,12 +144,13 @@ class Wnn(Net):
             biasvalue or defval.WNN_BIASVALUE,
             currinput or [],
             pastinput or [],
-            lifescore or 10,
+            lifescore or 42,
             lifelimit or 0,
             goodmatch or False)
 
     def gen_weigvalue(self) -> Cube[float]:
         ...
+
 
 class Bnn(Net):
     def __init__(
@@ -173,9 +172,37 @@ class Bnn(Net):
             biasvalue or defval.BNN_BIASVALUE,
             currinput or [],
             pastinput or [],
-            lifescore or 10,
+            lifescore or 42,
             lifelimit or 0,
             goodmatch or False)
 
     def gen_biasvalue(self) -> Grid[float]:
+        ...
+
+
+class Siamese(Net):
+    def __init__(
+        self,
+        layersize: None | list[int]   = None,
+        activfunc: None | list        = None,
+        weigvalue: None | Cube[float] = None,
+        biasvalue: None | Grid[float] = None,
+        currinput: None | Grid[int]   = None,
+        pastinput: None | Cube[int]   = None,
+        lifescore: None | int         = None,
+        lifelimit: None | int         = None,
+        goodmatch: None | bool        = None
+    ) -> None:
+        super().__init__(
+            layersize or defval.SIAMESE_LAYERSIZE,
+            activfunc or defval.SIAMESE_ACTIVFUNC,
+            weigvalue or defval.SIAMESE_WEIGVALUE,
+            biasvalue or defval.SIAMESE_BIASVALUE,
+            currinput or [],
+            pastinput or [],
+            lifescore or 0,
+            lifelimit or 0,
+            goodmatch or False)
+
+    def is_siamese(self) -> Grid[float]:
         ...

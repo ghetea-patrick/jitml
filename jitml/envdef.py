@@ -1,13 +1,12 @@
 from dataclasses import dataclass
-from enum import auto, Enum
-from random import Random
+from enum        import auto, Enum
+from random      import Random
+from netdef      import Grid
 
-from netdef import Grid
-
-ansiblu = "\033[34m"
-ansired = "\033[31m"
-ansirst = "\033[0m"
-ansicls = "\033[2J\033[H"
+ansiblu = "\033[..."
+ansired = "\033[..."
+ansirst = "\033[..."
+ansicls = "\033[..."
 
 randgen = Random(42)
 
@@ -20,8 +19,16 @@ class Move(Enum):
 
 
 @dataclass
-class Specs:
-    bluini: int = 16
+class Spec:
+    rownum: int = 42
+    rowini: int = 37
+
+    colnum: int = 37
+    colini: int = 17
+
+    radius: int = 1
+
+    bluini: int = 42
     bludif: int = 1
     bluval: int = 0
     blustr: str = ansiblu + "B" + ansirst
@@ -32,97 +39,94 @@ class Specs:
     redstr: str = ansired + "R" + ansirst
 
     youval: int = 2
-    youstr: str = "Y"
-
-    rownum: int = 16
-    rowini: int = 8
-
-    colnum: int = 16
-    colini: int = 0
-
-    sedval: int = 42
-    radius: int = 1
+    youstr: str = ansirst + "Y" + ansirst
 
 
-def numgrid(specs: Specs) -> Grid[int]:
-    probblu = specs.bluini
-    probred = specs.redini
-    newgrid = []
-    tilpick = 0
-
-    for _ in range(specs.rownum):
-        probblu -= specs.bludif if probblu > 0 else 0
-        probred += specs.reddif if probred >= 0 else 0
-
-        temprow = []
-        for _ in range(specs.colnum):
-            tilpick = randgen.choices([specs.bluval, specs.redval], [probblu, probred])[0]
-            temprow.append(tilpick)
-        newgrid.append(temprow)
-
-    return newgrid
+def tilecol(spec: Spec, probblu: float, probred: float) -> int:
+    return randgen.choices(
+        [spec.bluval, spec.redval],
+        [probblu    , probred    ],
+    )[0]
 
 
-def strgrid(grid: Grid[int], specs: Specs) -> str:
-    newgrid = []
+def numgrid(spec: Spec) -> Grid[int]:
+    probblu = spec.bluini
+    probred = spec.redini
+    grid    = []
 
-    blu_youval = specs.youval + specs.bluval
-    red_youval = specs.youval + specs.redval
+    for _ in range(spec.rownum):
+        probblu -= 0 if probblu <= 0 else spec.bludif
+        probred += 0 if probred >  0 else spec.reddif
+        temp = [tilecol(spec, probblu, probred) for _ in range(spec.colnum)]
+        grid.append(temp)
+    return grid
+
+
+def strgrid(spec: Spec, grid: Grid[int]) -> str:
+    youblu = spec.youval + spec.bluval
+    youred = spec.youval + spec.redval
+    repr = ""
 
     for row in grid:
-        temprow = ""
-        for cel in row:
-            if cel == specs.bluval:
-                temprow += specs.blustr
-            if cel == specs.redval:
-                temprow += specs.redstr
-            if cel == blu_youval:
-                temprow += specs.youstr
-            if cel == red_youval:
-                temprow += specs.youstr
-        newgrid.append(temprow)
+        temp  = "\n"
+        repr += temp
 
-    return "\n".join(newgrid)
+        for cell in row:
+            if cell == youblu:
+                temp += spec.youstr
+            if cell == youred:
+                temp += spec.youstr
+            if cell == spec.bluval:
+                temp += spec.blustr
+            if cell == spec.redval:
+                temp += spec.redstr
+
+    return repr
 
 
 class Env:
-    def __init__(self, specs: Specs = Specs()) -> None:
-        self.mygrid = numgrid(specs)
-        self.myspec = specs
-        self.rowcur = specs.rowini
-        self.colcur = specs.colini
+    def __init__(self, spec: Spec = Spec()) -> None:
+        self.rownow = spec.rowini
+        self.colnow = spec.colini
+        self.spec   = spec
+        self.grid   = numgrid(spec)
 
     def __str__(self) -> str:
-        return strgrid(self.view(), self.myspec)
+        return strgrid(
+            self.spec, self.view()
+        )
 
     def done(self) -> bool:
-        return bool(self.rowcur == self.myspec.rownum - 1)
+        return bool(
+            self.rownow == self.spec.rownum - 1
+        )
 
     def move(self, move: Move) -> None:
         if move == Move.Up:
-            self.rowcur -= 1
+            self.rownow-= 1
         if move == Move.Dn:
-            self.rowcur += 1
+            self.rownow+= 1
         if move == Move.Lf:
-            self.colcur -= 1
+            self.colnow -= 1
         if move == Move.Rg:
-            self.colcur += 1
+            self.colnow += 1
 
-        self.rowcur = max(0, min(self.rowcur, self.myspec.rownum - 1))
-        self.colcur = max(0, min(self.colcur, self.myspec.colnum - 1))
+        self.rownow = max(0, min(self.rownow, self.spec.rownum - 1))
+        self.colnow = max(0, min(self.colnow, self.spec.colnum - 1))
 
     def view(self) -> Grid[int]:
-        grid = [row[:] for row in self.mygrid]
-        grid[self.rowcur][self.colcur] += self.myspec.youval
+        grid = [row[:] for row in self.grid]
+        grid[self.rownow]\
+            [self.colnow]\
+        += self.spec.youval
         return grid
 
     def near(self) -> Grid[int]:
         grid = self.view()
 
-        rowmax = min(self.myspec.rownum, self.rowcur + self.myspec.radius + 1)
-        rowmin = max(0, self.rowcur - self.myspec.radius)
-
-        colmax = min(self.myspec.colnum, self.colcur + self.myspec.radius + 1)
-        colmin = max(0, self.colcur - self.myspec.radius)
+        rowmax = min(self.spec.rownum, self.rownow + self.spec.radius + 1)
+        rowmin = max(0, self.rownow - self.spec.radius)
+        colmax = min(self.spec.colnum, self.colnow + self.spec.radius + 1)
+        colmin = max(0, self.colnow - self.spec.radius)
 
         return [row[colmin:colmax] for row in grid[rowmin:rowmax]]
