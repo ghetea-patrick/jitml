@@ -241,12 +241,3 @@ This sequence illustrates routing and retention; it does not assign an extra mov
 | `stepdef` | Runtime hooks called by `jitml`. |
 
 `Grid[T]`, `Cube[T]`, and `Tess[T]` name two-, three-, and four-level nested lists. They describe storage order; a TNN's layer matrices can have different dimensions.
-
-## Author
-
-**Ghetea Patrick** · [@ghetea-patrick](https://github.com/ghetea-patrick)
-
-Email (fast): [gheteapatrick@gmail.com](mailto:gheteapatrick@gmail.com)  
-Email (slow): [patrick_ghetea@outlook.com](mailto:patrick_ghetea@outlook.com)
-
-Copyright (c) 2026 Ghetea Patrick. All rights reserved.
