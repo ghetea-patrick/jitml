@@ -211,7 +211,7 @@ flowchart TB
     newer --> retire["Unused TNN 1 ages and is eventually purged"]
 ```
 
-This sequence illustrates routing and retention; it does not assign an extra movement rule to either tile color. The [Wolfram notebook](arcdef.nb) includes compact board illustrations alongside the architecture.
+This sequence illustrates routing and retention; it does not assign an extra movement rule to either tile color. The [Wolfram notebook](/jitml/arcdef.nb) includes compact board illustrations alongside the architecture.
 
 ## Runtime and source map
 
