@@ -1,5 +1,6 @@
-from jitdef import Ctx
-from netdef import Ann, Bnn, Snn, Wnn
+from canddef import of_MTP
+from jitdef  import Ctx
+from netdef  import Ann, Bnn, Snn, Wnn
 
 
 class Vote:
@@ -20,15 +21,9 @@ class Vote:
         ...
 
 
-def candidates_of[T](L: T, num: int) -> list[T]:
-    ...
-
-
 def MTP(ctx: Ctx) -> None:
     ctx.clock += 1
 
-    if ctx.clock == ctx.ticks:
-        ctx.clock = 0
     if ctx.clock % ctx.every:
         return
 
@@ -47,19 +42,19 @@ def MTP(ctx: Ctx) -> None:
         ctx.mybnn.trainme(ctx.myque)
 
     if snn_needs:
-        ctx.mysnn = Vote.snn_from([ctx.mysnn] + candidates_of(ctx.mysnn, ctx.mnnum))
+        ctx.mysnn = Vote.snn_from([ctx.mysnn] + of_MTP(ctx.mysnn, ctx.mnnum))
     if ann_needs:
-        ctx.myann = Vote.ann_from([ctx.myann] + candidates_of(ctx.myann, ctx.mnnum))
+        ctx.myann = Vote.ann_from([ctx.myann] + of_MTP(ctx.myann, ctx.mnnum))
     if wnn_needs:
-        ctx.mywnn = Vote.wnn_from([ctx.mywnn] + candidates_of(ctx.mywnn, ctx.mnnum))
+        ctx.mywnn = Vote.wnn_from([ctx.mywnn] + of_MTP(ctx.mywnn, ctx.mnnum))
     if bnn_needs:
-        ctx.mybnn = Vote.bnn_from([ctx.mybnn] + candidates_of(ctx.mybnn, ctx.mnnum))
+        ctx.mybnn = Vote.bnn_from([ctx.mybnn] + of_MTP(ctx.mybnn, ctx.mnnum))
 
     if snn_needs:
-        ctx.mysnn.lifescore += 1
+        ctx.mysnn.lifescore = 0
     if ann_needs:
-        ctx.myann.lifescore += 1
+        ctx.myann.lifescore = 0
     if wnn_needs:
-        ctx.mywnn.lifescore += 1
+        ctx.mywnn.lifescore = 0
     if bnn_needs:
-        ctx.mybnn.lifescore += 1
+        ctx.mybnn.lifescore = 0
