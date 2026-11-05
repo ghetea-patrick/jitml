@@ -51,10 +51,10 @@ def MTP(ctx: Ctx) -> None:
         ctx.mybnn = Vote.bnn_from([ctx.mybnn] + of_MTP(ctx.mybnn, ctx.mnnum))
 
     if snn_needs:
-        ctx.mysnn.lifescore += 1
+        ctx.mysnn.lifescore = 0
     if ann_needs:
-        ctx.myann.lifescore += 1
+        ctx.myann.lifescore = 0
     if wnn_needs:
-        ctx.mywnn.lifescore += 1
+        ctx.mywnn.lifescore = 0
     if bnn_needs:
-        ctx.mybnn.lifescore += 1
+        ctx.mybnn.lifescore = 0
