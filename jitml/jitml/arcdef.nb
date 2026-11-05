@@ -1,0 +1,590 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+(* JITML architecture notebook. Based on the supplied dark WTC / Facet template. *)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+
+Cell["", "SlideShowNavigationBar", "FirstSlide", CellTags->"SlideShowHeader", CellOpen->False],
+
+Cell["Just-In-Time Machine Learning (JITML)", "Title"],
+
+Cell["A self-evolving architecture", "Subtitle"],
+
+Cell["Ghetea Patrick", "Text"],
+
+Cell["Copyright (c) 2026 Ghetea Patrick. All rights reserved.", "Caption"]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["", "SlideShowNavigationBar", CellTags->"SlideShowHeader", CellOpen->False],
+
+Cell[CellGroupData[{
+
+Cell["Abstract", "Section"],
+
+Cell["Just-In-Time Machine Learning (JITML) is a proposed way to adapt a model while it is running. Instead of relying on one fixed task network for every situation, a suite of meta-networks generates compact specialists when an unfamiliar context appears.", "Text"],
+
+Cell["This notebook presents the architecture and a small red-and-blue tile experiment. The Python snippets are the supplied structural template: their formatting and placeholders are preserved, and they are displayed as non-evaluating code blocks.", "Text"]
+
+}, Open]]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["", "SlideShowNavigationBar", CellTags->"SlideShowHeader", CellOpen->False],
+
+Cell[CellGroupData[{
+
+Cell["The limits of a fixed starting point", "Section"],
+
+Cell["Ahead-Of-Time Machine Learning (AOTML), as used here, means preparing a network before deployment and keeping its task structure fixed during use. That starting point works while the situations it encounters remain close to what it was prepared for. A change in context can call for an update or a different specialist.", "Text"],
+
+Cell["JITML explores a different runtime path: keep a useful baseline, reuse specialists for familiar contexts, and generate a new task network when the existing ones no longer fit. The aim is to handle a new context without retraining the entire system at every encounter. The meta-networks still need an initial training process and later updates.", "Text"]
+
+}, Open]]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["", "SlideShowNavigationBar", CellTags->"SlideShowHeader", CellOpen->False],
+
+Cell[CellGroupData[{
+
+Cell["Core components", "Section"],
+
+Cell["Task-networks (TNNs) do the immediate work. Each is a compact feed-forward neural network associated with a field of expertise: a group of contexts for which it is useful.", "Text"],
+
+Cell["Meta-networks (MNNs) build those specialists. The suite separates four decisions: SNN defines the shape, ANN chooses activations, WNN supplies weights, and BNN supplies bias values. The proposed MNNs also use feed-forward designs.", "Text"],
+
+Cell["Two pipelines connect them. The Task Generation Pipeline (TGP) creates a specialist at runtime. The Meta Training Pipeline (MTP) learns from accumulated context–TNN pairs so that later specialists can start from better proposals.", "Text"]
+
+}, Open]]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["", "SlideShowNavigationBar", CellTags->"SlideShowHeader", CellOpen->False],
+
+Cell[CellGroupData[{
+
+Cell["Task Generation Pipeline (TGP)", "Section"],
+
+Cell["An unfamiliar context enters a sequence of generators. Each stage fills in one part of the new network definition, building on the choices made before it.", "Text"],
+
+Cell["SNN · Shape", "Subsubsection"],
+
+Cell["The SNN proposes which neuron slots are active. In the proposed design, sigmoid outputs are interpreted as an on/off mask; slots that do not contain neurons are removed.", "Text"],
+
+Cell["ANN · Activations", "Subsubsection"],
+
+Cell["The ANN uses the structural description to choose the activation function for each layer.", "Text"],
+
+Cell["WNN and BNN · Parameters", "Subsubsection"],
+
+Cell["The WNN fills the network with weights, and weights close to zero can be pruned. The BNN completes the bias values, matching the gen_biasvalue() interface in the Python template. The intended result is a compact TNN before candidate selection begins.", "Text"],
+
+Cell[BoxData[
+GraphicsBox[{
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{177, 360}, {214, 360}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{380, 360}, {417, 360}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{583, 360}, {620, 360}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{786, 360}, {823, 360}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{906, 326}, {906, 281}, {170, 281}, {170, 238}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{295, 202}, {375, 202}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{625, 202}, {705, 202}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{830, 166}, {830, 98}}]},
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.235, 0.279, 0.337], AbsoluteThickness[1.25]]], RectangleBox[{11, 326}, {177, 394}, RoundingRadius->9]},
+  InsetBox[StyleBox["Context", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {94, 371}, Center],
+  InsetBox[StyleBox["local observation", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {94, 347}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.973, 0.428, 0.424], AbsoluteThickness[1.25]]], RectangleBox[{214, 326}, {380, 394}, RoundingRadius->9]},
+  InsetBox[StyleBox["SNN", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {297, 371}, Center],
+  InsetBox[StyleBox["shape", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {297, 347}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.973, 0.428, 0.424], AbsoluteThickness[1.25]]], RectangleBox[{417, 326}, {583, 394}, RoundingRadius->9]},
+  InsetBox[StyleBox["ANN", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {500, 371}, Center],
+  InsetBox[StyleBox["activations", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {500, 347}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.973, 0.428, 0.424], AbsoluteThickness[1.25]]], RectangleBox[{620, 326}, {786, 394}, RoundingRadius->9]},
+  InsetBox[StyleBox["WNN", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {703, 371}, Center],
+  InsetBox[StyleBox["weights", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {703, 347}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.973, 0.428, 0.424], AbsoluteThickness[1.25]]], RectangleBox[{823, 326}, {989, 394}, RoundingRadius->9]},
+  InsetBox[StyleBox["BNN", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {906, 371}, Center],
+  InsetBox[StyleBox["bias values", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {906, 347}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.235, 0.279, 0.337], AbsoluteThickness[1.25]]], RectangleBox[{45, 166}, {295, 238}, RoundingRadius->9]},
+  InsetBox[StyleBox["Campaign", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {170, 213}, Center],
+  InsetBox[StyleBox["mutate candidates", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {170, 189}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.235, 0.279, 0.337], AbsoluteThickness[1.25]]], RectangleBox[{375, 166}, {625, 238}, RoundingRadius->9]},
+  InsetBox[StyleBox["Voting", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {500, 213}, Center],
+  InsetBox[StyleBox["score candidates", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {500, 189}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.235, 0.279, 0.337], AbsoluteThickness[1.25]]], RectangleBox[{705, 166}, {955, 238}, RoundingRadius->9]},
+  InsetBox[StyleBox["In Office", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {830, 213}, Center],
+  InsetBox[StyleBox["use the winning output", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {830, 189}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.35, 0.79, 0.72], AbsoluteThickness[1.25]]], RectangleBox[{705, 32}, {955, 98}, RoundingRadius->9]},
+  InsetBox[StyleBox["Task network (TNN)", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {830, 76}, Center],
+  InsetBox[StyleBox["retain its field of expertise", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {830, 52}, Center]
+}, ImageSize->940, AspectRatio->0.43, PlotRange->{{0, 1000}, {0, 430}}, PlotRangePadding->None, ImagePadding->0, Background->RGBColor[0.055, 0.067, 0.086]]
+], "Diagram", Evaluatable->False, CellTags->"diagram:tgp"],
+
+Cell["Campaign → Voting → In Office", "Subsubsection"],
+
+Cell["Campaign creates candidates by mutating the proposed TNN parameters. Voting scores those candidates using a fixed set of criteria. In Office uses the winning output and retains the TNN that produced it, together with the context that establishes its field of expertise.", "Text"],
+
+Cell["The initial voting idea favors clear, predominant outputs with lower entropy. In the toy experiment, task feedback must also show whether the chosen behavior works: a confident output can still select the wrong move. Deterministic scoring makes the decision repeatable for a fixed candidate set; it does not make candidate generation deterministic.", "Text"],
+
+Cell["The arrows show the intended staged data flow. The supplied TGP snippet names the generators and selection steps; context passing, compatibility checks and candidate scoring remain implementation details.", "Text"]
+
+}, Open]]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["", "SlideShowNavigationBar", CellTags->"SlideShowHeader", CellOpen->False],
+
+Cell[CellGroupData[{
+
+Cell["TNN lifecycle", "Section"],
+
+Cell["For each context, the system first looks for a TNN with a matching field of expertise. A match reuses the existing specialist. Otherwise, the TGP creates a new one.", "Text"],
+
+Cell[BoxData[
+GraphicsBox[{
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{205, 450}, {290, 450}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{570, 450}, {690, 450}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{430, 386}, {430, 312}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{815, 415}, {815, 312}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{555, 275}, {690, 275}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{815, 238}, {815, 137}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{690, 100}, {615, 100}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{365, 100}, {290, 100}}]},
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.235, 0.279, 0.337], AbsoluteThickness[1.25]]], RectangleBox[{25, 415}, {205, 485}, RoundingRadius->9]},
+  InsetBox[StyleBox["Context", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {115, 461}, Center],
+  InsetBox[StyleBox["current observation", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {115, 437}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.973, 0.428, 0.424], AbsoluteThickness[1.25]]], PolygonBox[{{290, 450}, {430, 514}, {570, 450}, {430, 386}}]},
+  InsetBox[StyleBox["Matching field", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {430, 461}, Center],
+  InsetBox[StyleBox["of expertise?", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {430, 437}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.35, 0.79, 0.72], AbsoluteThickness[1.25]]], RectangleBox[{690, 415}, {940, 485}, RoundingRadius->9]},
+  InsetBox[StyleBox["Use existing TNN", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {815, 461}, Center],
+  InsetBox[StyleBox["reuse a familiar specialist", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {815, 437}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.973, 0.428, 0.424], AbsoluteThickness[1.25]]], RectangleBox[{305, 238}, {555, 312}, RoundingRadius->9]},
+  InsetBox[StyleBox["Run TGP", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {430, 286}, Center],
+  InsetBox[StyleBox["generate a new specialist", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {430, 262}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.235, 0.279, 0.337], AbsoluteThickness[1.25]]], RectangleBox[{690, 238}, {940, 312}, RoundingRadius->9]},
+  InsetBox[StyleBox["Run selected TNN", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {815, 286}, Center],
+  InsetBox[StyleBox["produce the next move", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {815, 262}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.35, 0.79, 0.72], AbsoluteThickness[1.25]]], RectangleBox[{690, 63}, {940, 137}, RoundingRadius->9]},
+  InsetBox[StyleBox["Selected TNN", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {815, 111}, Center],
+  InsetBox[StyleBox["gets hotter", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {815, 87}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.235, 0.279, 0.337], AbsoluteThickness[1.25]]], RectangleBox[{365, 63}, {615, 137}, RoundingRadius->9]},
+  InsetBox[StyleBox["Other TNNs", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {490, 111}, Center],
+  InsetBox[StyleBox["get colder", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {490, 87}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.235, 0.279, 0.337], AbsoluteThickness[1.25]]], RectangleBox[{40, 63}, {290, 137}, RoundingRadius->9]},
+  InsetBox[StyleBox["Purge unused TNNs", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {165, 111}, Center],
+  InsetBox[StyleBox["free resources", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {165, 87}, Center],
+  InsetBox[StyleBox["Yes", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.35, 0.79, 0.72], TextAlignment->Center], {630, 472}, Center],
+  InsetBox[StyleBox["No", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.35, 0.79, 0.72], TextAlignment->Center], {454, 349}, Center]
+}, ImageSize->940, AspectRatio->0.565, PlotRange->{{0, 1000}, {0, 565}}, PlotRangePadding->None, ImagePadding->0, Background->RGBColor[0.055, 0.067, 0.086]]
+], "Diagram", Evaluatable->False, CellTags->"diagram:lifecycle"],
+
+Cell["A selected TNN becomes hotter, while unused TNNs become colder. Networks that remain unused are purged to release resources. The lifespan fields in Net and the matching and lifecycle hooks in Step provide places to implement this policy; the thresholds and matching rule are deliberately left open.", "Text"]
+
+}, Open]]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["", "SlideShowNavigationBar", CellTags->"SlideShowHeader", CellOpen->False],
+
+Cell[CellGroupData[{
+
+Cell["Meta Training Pipeline (MTP)", "Section"],
+
+Cell["The MTP bootstraps the generators from known contexts and their associated TNNs. The context bank is the conceptual record of those pairs; currinput and pastinput provide places to retain observations alongside each network.", "Text"],
+
+Cell["Each MNN learns its own part of the network definition: shapes for SNN, activation choices for ANN, weights for WNN, and biases for BNN. A candidate suite is checked with the selection criteria and benchmarked against the current suite on known context–TNN pairs before it is accepted.", "Text"],
+
+Cell[BoxData[
+GraphicsBox[{
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{181, 395}, {210, 395}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{384, 395}, {413, 395}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{587, 395}, {616, 395}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{790, 395}, {819, 395}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{906, 359}, {906, 311}, {170, 311}, {170, 267}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{295, 230}, {375, 230}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{625, 230}, {705, 230}}]},
+  {RGBColor[0.61, 0.67, 0.75], AbsoluteThickness[1.4], Arrowheads[0.017], ArrowBox[{{500, 193}, {500, 98}}]},
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.235, 0.279, 0.337], AbsoluteThickness[1.25]]], RectangleBox[{7, 359}, {181, 431}, RoundingRadius->9]},
+  InsetBox[StyleBox["Context bank", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {94, 406}, Center],
+  InsetBox[StyleBox["context + TNN pairs", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {94, 382}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.973, 0.428, 0.424], AbsoluteThickness[1.25]]], RectangleBox[{210, 359}, {384, 431}, RoundingRadius->9]},
+  InsetBox[StyleBox["Train SNN", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {297, 406}, Center],
+  InsetBox[StyleBox["shape", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {297, 382}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.973, 0.428, 0.424], AbsoluteThickness[1.25]]], RectangleBox[{413, 359}, {587, 431}, RoundingRadius->9]},
+  InsetBox[StyleBox["Train ANN", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {500, 406}, Center],
+  InsetBox[StyleBox["activations", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {500, 382}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.973, 0.428, 0.424], AbsoluteThickness[1.25]]], RectangleBox[{616, 359}, {790, 431}, RoundingRadius->9]},
+  InsetBox[StyleBox["Train WNN", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {703, 406}, Center],
+  InsetBox[StyleBox["weights", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {703, 382}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.973, 0.428, 0.424], AbsoluteThickness[1.25]]], RectangleBox[{819, 359}, {993, 431}, RoundingRadius->9]},
+  InsetBox[StyleBox["Train BNN", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {906, 406}, Center],
+  InsetBox[StyleBox["bias values", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {906, 382}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.235, 0.279, 0.337], AbsoluteThickness[1.25]]], RectangleBox[{45, 193}, {295, 267}, RoundingRadius->9]},
+  InsetBox[StyleBox["Check criteria", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {170, 241}, Center],
+  InsetBox[StyleBox["same selection rules", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {170, 217}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.973, 0.428, 0.424], AbsoluteThickness[1.25]]], RectangleBox[{375, 193}, {625, 267}, RoundingRadius->9]},
+  InsetBox[StyleBox["Benchmark", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {500, 241}, Center],
+  InsetBox[StyleBox["against the current suite", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {500, 217}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.35, 0.79, 0.72], AbsoluteThickness[1.25]]], RectangleBox[{705, 193}, {955, 267}, RoundingRadius->9]},
+  InsetBox[StyleBox["MNN suite", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {830, 241}, Center],
+  InsetBox[StyleBox["promote the accepted update", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {830, 217}, Center],
+  {FaceForm[RGBColor[0.086, 0.105, 0.133]], EdgeForm[Directive[RGBColor[0.235, 0.279, 0.337], AbsoluteThickness[1.25]]], RectangleBox[{375, 32}, {625, 98}, RoundingRadius->9]},
+  InsetBox[StyleBox["Keep current suite", FontFamily->"Source Sans Pro", FontSize->13.5, FontWeight->"Bold", FontColor->RGBColor[0.89, 0.915, 0.945], TextAlignment->Center], {500, 76}, Center],
+  InsetBox[StyleBox["if validation fails", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.61, 0.67, 0.75], TextAlignment->Center], {500, 52}, Center],
+  InsetBox[StyleBox["Pass", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.35, 0.79, 0.72], TextAlignment->Center], {665, 252}, Center],
+  InsetBox[StyleBox["Regression", FontFamily->"Source Sans Pro", FontSize->11.5, FontWeight->"Plain", FontColor->RGBColor[0.35, 0.79, 0.72], TextAlignment->Center], {550, 146}, Center]
+}, ImageSize->940, AspectRatio->0.47, PlotRange->{{0, 1000}, {0, 470}}, PlotRangePadding->None, ImagePadding->0, Background->RGBColor[0.055, 0.067, 0.086]]
+], "Diagram", Evaluatable->False, CellTags->"diagram:mtp"],
+
+Cell["If the update fails those checks, the current suite stays in use. This feedback loop is the proposed route to better initial TNNs over time; the notebook does not claim measured improvement. The short MTP function below marks the training entry point, while validation and promotion remain to be implemented.", "Text"]
+
+}, Open]]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["", "SlideShowNavigationBar", CellTags->"SlideShowHeader", CellOpen->False],
+
+Cell[CellGroupData[{
+
+Cell["A toy problem: red and blue tiles", "Section"],
+
+Cell["The proposed test uses a grid with two tile types. Blue and red tiles have different mappings from the agent’s four move commands to physical directions. The goal is to see whether the system can keep a useful specialist through small changes, then generate another one when the changed surroundings require different behavior.", "Text"],
+
+Cell["The supplied environment already defines the board, the player position, a local view and basic movement. With the default settings, the board is 16 × 16, the agent starts at row 8 and column 0, and radius 1 gives a local window of up to 3 × 3 cells. Blue becomes less likely down the board as red becomes more likely. A run finishes when the agent reaches the last row.", "Text"],
+
+Cell["The tile-dependent direction mappings are part of the proposed experiment. Env.move() currently applies the four directions directly, so those mappings and the learning behavior are not yet implemented in this skeleton. The code is kept exactly as supplied.", "Text"],
+
+Cell["A useful trial begins with familiar local contexts, introduces a few changed tiles, then exposes the agent to enough of the other tile system to make the old specialist a poor match. The expected pattern to test is reuse, generation, and then reuse of the new specialist. A small visual change alone should not force a new TNN if the current behavior still works.", "Text"],
+
+Cell["To assess that pattern, a later implementation can record when generation happens, which TNN is selected, how long specialists remain active, and whether the agent reaches the goal. These are proposed observations for the experiment, rather than results from the current template.", "Text"]
+
+}, Open]]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["", "SlideShowNavigationBar", CellTags->"SlideShowHeader", CellOpen->False],
+
+Cell[CellGroupData[{
+
+Cell["Python structure", "Section"],
+
+Cell["The seven modules below appear in the supplied order. Each code block preserves the original text, including indentation, alignment, naming and ellipses. They document the architecture and are not evaluated by this notebook.", "Text"],
+
+Cell[CellGroupData[{
+
+Cell["defval.py · Default network definitions", "Subsection"],
+
+Cell["This module reserves the layer sizes, activation functions, weights and biases for the TNN and each MNN. The empty lists leave the baseline configuration open while keeping the same four-part description across every network type.", "Text"],
+
+Cell["#defval.py\n\nfrom netdef import Cube, Grid\n\nTNN_LAYERSIZE: list[int]   = []\nTNN_ACTIVFUNC: list        = []\nTNN_WEIGVALUE: Cube[float] = []\nTNN_BIASVALUE: Grid[float] = []\n\nSNN_LAYERSIZE: list[int]   = []\nSNN_ACTIVFUNC: list        = []\nSNN_WEIGVALUE: Cube[float] = []\nSNN_BIASVALUE: Grid[float] = []\n\nANN_LAYERSIZE: list[int]   = []\nANN_ACTIVFUNC: list        = []\nANN_WEIGVALUE: Cube[float] = []\nANN_BIASVALUE: Grid[float] = []\n\nWNN_LAYERSIZE: list[int]   = []\nWNN_ACTIVFUNC: list        = []\nWNN_WEIGVALUE: Cube[float] = []\nWNN_BIASVALUE: Grid[float] = []\n\nBNN_LAYERSIZE: list[int]   = []\nBNN_ACTIVFUNC: list        = []\nBNN_WEIGVALUE: Cube[float] = []\nBNN_BIASVALUE: Grid[float] = []", "Program",
+ Evaluatable->False,
+ AutoIndent->False,
+ LineBreakWithin->False,
+ PageWidth->Infinity,
+ CellTags->"code:defval.py"]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["envdef.py · The environment and local context", "Subsection"],
+
+Cell["Specs holds the grid settings and display values. numgrid() builds the red-and-blue distribution, while strgrid() renders it. Env owns the current position, clamps movement at the board edges, and exposes both a full view and the nearby context through near().", "Text"],
+
+Cell["The random generator is created once with Random(42). The near() window is clipped at the board boundaries, so the template leaves the later network implementation to decide how observations of different sizes will be represented.", "Text"],
+
+Cell["# envdef.py\n\nfrom dataclasses import dataclass\nfrom enum import auto, Enum\nfrom random import Random\n\nfrom netdef import Grid\n\nansiblu = \"\\033[34m\"\nansired = \"\\033[31m\"\nansirst = \"\\033[0m\"\nansicls = \"\\033[2J\\033[H\"\n\nrandgen = Random(42)\n\n\nclass Move(Enum):\n    Up = auto()\n    Dn = auto()\n    Lf = auto()\n    Rg = auto()\n\n\n@dataclass\nclass Specs:\n    bluini: int = 16\n    bludif: int = 1\n    bluval: int = 0\n    blustr: str = ansiblu + \"B\" + ansirst\n\n    redini: int = 0\n    reddif: int = 1\n    redval: int = 1\n    redstr: str = ansired + \"R\" + ansirst\n\n    youval: int = 2\n    youstr: str = \"Y\"\n\n    rownum: int = 16\n    rowini: int = 8\n\n    colnum: int = 16\n    colini: int = 0\n\n    sedval: int = 42\n    radius: int = 1\n\n\ndef numgrid(specs: Specs) -> Grid[int]:\n    probblu = specs.bluini\n    probred = specs.redini\n    newgrid = []\n    tilpick = 0\n\n    for _ in range(specs.rownum):\n        probblu -= specs.bludif if probblu > 0 else 0\n        probred += specs.reddif if probred >= 0 else 0\n\n        temprow = []\n        for _ in range(specs.colnum):\n            tilpick = randgen.choices([specs.bluval, specs.redval], [probblu, probred])[0]\n            temprow.append(tilpick)\n        newgrid.append(temprow)\n\n    return newgrid\n\n\ndef strgrid(grid: Grid[int], specs: Specs) -> str:\n    newgrid = []\n\n    blu_youval = specs.youval + specs.bluval\n    red_youval = specs.youval + specs.redval\n\n    for row in grid:\n        temprow = \"\"\n        for cel in row:\n            if cel == specs.bluval:\n                temprow += specs.blustr\n            if cel == specs.redval:\n                temprow += specs.redstr\n            if cel == blu_youval:\n                temprow += specs.youstr\n            if cel == red_youval:\n                temprow += specs.youstr\n        newgrid.append(temprow)\n\n    return \"\\n\".join(newgrid)\n\n\nclass Env:\n    def __init__(self, specs: Specs = Specs()) -> None:\n        self.mygrid = numgrid(specs)\n        self.myspec = specs\n        self.rowcur = specs.rowini\n        self.colcur = specs.colini\n\n    def __str__(self) -> str:\n        return strgrid(self.view(), self.myspec)\n\n    def done(self) -> bool:\n        return bool(self.rowcur == self.myspec.rownum - 1)\n\n    def move(self, move: Move) -> None:\n        if move == Move.Up:\n            self.rowcur -= 1\n        if move == Move.Dn:\n            self.rowcur += 1\n        if move == Move.Lf:\n            self.colcur -= 1\n        if move == Move.Rg:\n            self.colcur += 1\n\n        self.rowcur = max(0, min(self.rowcur, self.myspec.rownum - 1))\n        self.colcur = max(0, min(self.colcur, self.myspec.colnum - 1))\n\n    def view(self) -> Grid[int]:\n        grid = [row[:] for row in self.mygrid]\n        grid[self.rowcur][self.colcur] += self.myspec.youval\n        return grid\n\n    def near(self) -> Grid[int]:\n        grid = self.view()\n\n        rowmax = min(self.myspec.rownum, self.rowcur + self.myspec.radius + 1)\n        rowmin = max(0, self.rowcur - self.myspec.radius)\n\n        colmax = min(self.myspec.colnum, self.colcur + self.myspec.radius + 1)\n        colmin = max(0, self.colcur - self.myspec.radius)\n\n        return [row[colmin:colmax] for row in grid[rowmin:rowmax]]", "Program",
+ Evaluatable->False,
+ AutoIndent->False,
+ LineBreakWithin->False,
+ PageWidth->Infinity,
+ CellTags->"code:envdef.py"]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["jitdef.py · Shared state and the runtime loop", "Subsection"],
+
+Cell["Ctx collects the environment, timing fields, TNN queues and the four MNNs. The jitml() loop makes the intended order visible: check completion, render, handle lifecycle work, request generation when needed, make a move, and check whether meta-training is due.", "Text"],
+
+Cell["The queues and Step methods mark the boundaries between those responsibilities. Their detailed policies remain open, so the notebook can explain the system without choosing a full implementation.", "Text"],
+
+Cell["# jitdef.py\n\nfrom dataclasses import dataclass\n\nfrom envdef import Env\nfrom netdef import Ann, Bnn, Snn, Wnn, Que, Tnn\nfrom stepdef import Step\n\n\n@dataclass\nclass Ctx:\n    runme: bool = True\n\n    every: int = 32\n    ticks: int = 64\n    clock: int = 0\n\n    myenv: Env = Env()\n\n    myque: Que = []\n    okque: Que = []\n    dfque: Que = [Tnn()]\n\n    mysnn: Snn = Snn()\n    myann: Ann = Ann()\n    mywnn: Wnn = Wnn()\n    mybnn: Bnn = Bnn()\n\n\ndef jitml(ctx: Ctx) -> None:\n    while ctx.runme:\n        Step.doneplay(ctx)\n        Step.uirender(ctx)\n        Step.keepbusy(ctx)\n        Step.killdead(ctx)\n        Step.givelife(ctx)\n        Step.needstgp(ctx)\n        Step.makemove(ctx)\n        Step.needsmtp(ctx)", "Program",
+ Evaluatable->False,
+ AutoIndent->False,
+ LineBreakWithin->False,
+ PageWidth->Infinity,
+ CellTags->"code:jitdef.py"]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["mtpdef.py · The meta-training entry point", "Subsection"],
+
+Cell["MTP() sends the current TNN queue to each generator’s trainme() method. It is the compact entry point for the learning phase described above. Extracting training pairs, fitting each MNN and deciding whether to accept an update belong inside the later training and validation implementation.", "Text"],
+
+Cell["# mtpdef.py\n\nfrom jitdef import Ctx\n\n\ndef MTP(ctx: Ctx) -> None:\n    ctx.mysnn.trainme(ctx.myque)\n    ctx.myann.trainme(ctx.myque)\n    ctx.mywnn.trainme(ctx.myque)\n    ctx.mybnn.trainme(ctx.myque)", "Program",
+ Evaluatable->False,
+ AutoIndent->False,
+ LineBreakWithin->False,
+ PageWidth->Infinity,
+ CellTags->"code:mtpdef.py"]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["netdef.py · Network types and generation interfaces", "Subsection"],
+
+Cell["Grid, Cube and Tess describe nested list shapes, while Ten names the tensor type. Net stores a common network definition, its current and past inputs, and the fields used for matching and lifecycle decisions.", "Text"],
+
+Cell["Tnn adds the move-generation interface. Snn, Ann, Wnn and Bnn each expose the part of a new TNN they are responsible for producing. The forward(), trainme() and generation methods intentionally remain placeholders. Their bodies, type syntax, spacing and class layout are preserved below.", "Text"],
+
+Cell["# netdef.py\n\nfrom torch import Tensor\n\nimport defval\nfrom envdef import Move\n\ntype Mnn = Snn | Ann | Wnn | Bnn\ntype Que = list[Tnn]\n\ntype Grid[T] = list[list[T]]\ntype Cube[T] = list[Grid[T]]\ntype Tess[T] = list[Cube[T]]\n\ntype Ten = Tensor\n\n\nclass Net:\n    def __init__(\n        self,\n        layersize: list[int],\n        activfunc: list,\n        weigvalue: Cube[float],\n        biasvalue: Grid[float],\n        currinput: Grid[int],\n        pastinput: Cube[int],\n        lifescore: int,\n        lifelimit: int,\n        goodmatch: bool\n    ) -> None:\n        self.layersize = layersize\n        self.activfunc = activfunc\n        self.weigvalue = weigvalue\n        self.biasvalue = biasvalue\n        self.currinput = currinput\n        self.pastinput = pastinput\n        self.lifescore = lifescore\n        self.lifelimit = lifelimit\n        self.goodmatch = goodmatch\n\n    def forward(self, ten: Ten) -> ...:\n        ...\n\n    def trainme(self, que: Que) -> ...:\n        ...\n\n\nclass Tnn(Net):\n    def __init__(\n        self,\n        layersize: None | list[int]   = None,\n        activfunc: None | list        = None,\n        weigvalue: None | Cube[float] = None,\n        biasvalue: None | Grid[float] = None,\n        currinput: None | Grid[int]   = None,\n        pastinput: None | Cube[int]   = None,\n        lifescore: None | int         = None,\n        lifelimit: None | int         = None,\n        goodmatch: None | bool        = None\n    ) -> None:\n        super().__init__(\n            layersize or defval.TNN_LAYERSIZE,\n            activfunc or defval.TNN_ACTIVFUNC,\n            weigvalue or defval.TNN_WEIGVALUE,\n            biasvalue or defval.TNN_BIASVALUE,\n            currinput or [],\n            pastinput or [],\n            lifescore or 10,\n            lifelimit or 0,\n            goodmatch or False)\n\n    def gen_takenmove(self) -> Move:\n        ...\n\n\nclass Snn(Net):\n    def __init__(\n        self,\n        layersize: None | list[int]   = None,\n        activfunc: None | list        = None,\n        weigvalue: None | Cube[float] = None,\n        biasvalue: None | Grid[float] = None,\n        currinput: None | Grid[int]   = None,\n        pastinput: None | Cube[int]   = None,\n        lifescore: None | int         = None,\n        lifelimit: None | int         = None,\n        goodmatch: None | bool        = None\n    ) -> None:\n        super().__init__(\n            layersize or defval.SNN_LAYERSIZE,\n            activfunc or defval.SNN_ACTIVFUNC,\n            weigvalue or defval.SNN_WEIGVALUE,\n            biasvalue or defval.SNN_BIASVALUE,\n            currinput or [],\n            pastinput or [],\n            lifescore or 10,\n            lifelimit or 0,\n            goodmatch or False)\n\n    def gen_layersize(self) -> list[int]:\n        ...\n\n\nclass Ann(Net):\n    def __init__(\n        self,\n        layersize: None | list[int]   = None,\n        activfunc: None | list        = None,\n        weigvalue: None | Cube[float] = None,\n        biasvalue: None | Grid[float] = None,\n        currinput: None | Grid[int]   = None,\n        pastinput: None | Cube[int]   = None,\n        lifescore: None | int         = None,\n        lifelimit: None | int         = None,\n        goodmatch: None | bool        = None\n    ) -> None:\n        super().__init__(\n            layersize or defval.ANN_LAYERSIZE,\n            activfunc or defval.ANN_ACTIVFUNC,\n            weigvalue or defval.ANN_WEIGVALUE,\n            biasvalue or defval.ANN_BIASVALUE,\n            currinput or [],\n            pastinput or [],\n            lifescore or 10,\n            lifelimit or 0,\n            goodmatch or False)\n\n    def gen_activfunc(self) -> list:\n        ...\n\nclass Wnn(Net):\n    def __init__(\n        self,\n        layersize: None | list[int]   = None,\n        activfunc: None | list        = None,\n        weigvalue: None | Cube[float] = None,\n        biasvalue: None | Grid[float] = None,\n        currinput: None | Grid[int]   = None,\n        pastinput: None | Cube[int]   = None,\n        lifescore: None | int         = None,\n        lifelimit: None | int         = None,\n        goodmatch: None | bool        = None\n    ) -> None:\n        super().__init__(\n            layersize or defval.WNN_LAYERSIZE,\n            activfunc or defval.WNN_ACTIVFUNC,\n            weigvalue or defval.WNN_WEIGVALUE,\n            biasvalue or defval.WNN_BIASVALUE,\n            currinput or [],\n            pastinput or [],\n            lifescore or 10,\n            lifelimit or 0,\n            goodmatch or False)\n\n    def gen_weigvalue(self) -> Cube[float]:\n        ...\n\nclass Bnn(Net):\n    def __init__(\n        self,\n        layersize: None | list[int]   = None,\n        activfunc: None | list        = None,\n        weigvalue: None | Cube[float] = None,\n        biasvalue: None | Grid[float] = None,\n        currinput: None | Grid[int]   = None,\n        pastinput: None | Cube[int]   = None,\n        lifescore: None | int         = None,\n        lifelimit: None | int         = None,\n        goodmatch: None | bool        = None\n    ) -> None:\n        super().__init__(\n            layersize or defval.BNN_LAYERSIZE,\n            activfunc or defval.BNN_ACTIVFUNC,\n            weigvalue or defval.BNN_WEIGVALUE,\n            biasvalue or defval.BNN_BIASVALUE,\n            currinput or [],\n            pastinput or [],\n            lifescore or 10,\n            lifelimit or 0,\n            goodmatch or False)\n\n    def gen_biasvalue(self) -> Grid[float]:\n        ...", "Program",
+ Evaluatable->False,
+ AutoIndent->False,
+ LineBreakWithin->False,
+ PageWidth->Infinity,
+ CellTags->"code:netdef.py"]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["stepdef.py · The runtime decisions", "Subsection"],
+
+Cell["is_match() and is_alive() name the two central decisions: whether a TNN fits the context and whether it should remain available. Step separates rendering, lifecycle work, movement, task generation and meta-training into individual hooks called by the main loop.", "Text"],
+
+Cell["This keeps the overall runtime sequence easy to inspect while leaving matching rules, lifetime updates and scheduling for the implementation stage.", "Text"],
+
+Cell["# stepdef.py\n\nfrom jitdef import Ctx\nfrom netdef import Tnn\nfrom mtpdef import MTP\nfrom tgpdef import TGP\n\n\ndef is_match(tnn: Tnn, ctx: Ctx) -> bool:\n    ...\n\n\ndef is_alive(tnn: Tnn) -> bool:\n    ...\n\n\nclass Step:\n    @staticmethod\n    def doneplay(ctx: Ctx) -> None:\n        ...\n\n    @staticmethod\n    def uirender(ctx: Ctx) -> None:\n        ...\n\n    @staticmethod\n    def keepbusy(ctx: Ctx) -> None:\n        ...\n\n    @staticmethod\n    def killdead(ctx: Ctx) -> None:\n        ...\n\n    @staticmethod\n    def givelife(ctx: Ctx) -> None:\n        ...\n\n    @staticmethod\n    def makemove(ctx: Ctx) -> None:\n        ...\n\n    @staticmethod\n    def needstgp(ctx: Ctx) -> None:\n        ...\n\n    @staticmethod\n    def needsmtp(ctx: Ctx) -> None:\n        ...", "Program",
+ Evaluatable->False,
+ AutoIndent->False,
+ LineBreakWithin->False,
+ PageWidth->Infinity,
+ CellTags->"code:stepdef.py"]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["tgpdef.py · From proposals to a task network", "Subsection"],
+
+Cell["TGP() reads the nearby grid, asks the four MNNs for initial definitions, creates candidate sets, selects values through Vote, and returns a Tnn. The names mirror the proposed generation and election process.", "Text"],
+
+Cell["The current skeleton collects the context but does not yet pass it through the generators. It also votes on the definition fields separately. A later implementation must connect the staged inputs and keep the selected shape, activations, weights and biases compatible; the supplied snippet remains unchanged.", "Text"],
+
+Cell["# tgpdef.py\n\nfrom jitdef import Ctx\nfrom netdef import Cube, Grid, Tess, Tnn\n\n\nclass Vote:\n    @staticmethod\n    def layersize_from(cands: Grid[int]) -> list[int]:\n        ...\n\n    @staticmethod\n    def activfunc_from(cands: Grid) -> list:\n        ...\n\n    @staticmethod\n    def weigvalue_from(cands: Tess[float]) -> Cube[float]:\n        ...\n\n    @staticmethod\n    def biasvalue_from(cands: Cube[float]) -> Grid[float]:\n        ...\n\n\ndef candidates_of[T](L: list[T]) -> Grid[T]:\n    ...\n\n\ndef TGP(ctx: Ctx) -> Tnn:\n    grid = ctx.myenv.near()\n\n    laysinit = ctx.mysnn.gen_layersize()\n    actiinit = ctx.myann.gen_activfunc()\n    weiginit = ctx.mywnn.gen_weigvalue()\n    biasinit = ctx.mybnn.gen_biasvalue()\n\n    layscand = candidates_of(laysinit)\n    acticand = candidates_of(actiinit)\n    weigcand = candidates_of(weiginit)\n    biascand = candidates_of(biasinit)\n\n    layersize = Vote.layersize_from(layscand)\n    activfunc = Vote.activfunc_from(acticand)\n    weigvalue = Vote.weigvalue_from(weigcand)\n    biasvalue = Vote.biasvalue_from(biascand)\n\n    return Tnn(\n        layersize=layersize,\n        activfunc=activfunc,\n        weigvalue=weigvalue,\n        biasvalue=biasvalue)", "Program",
+ Evaluatable->False,
+ AutoIndent->False,
+ LineBreakWithin->False,
+ PageWidth->Infinity,
+ CellTags->"code:tgpdef.py"]
+
+}, Open]]
+
+}, Open]]
+
+}, Open]],
+
+Cell[CellGroupData[{
+
+Cell["", "SlideShowNavigationBar", CellTags->"SlideShowHeader", CellOpen->False],
+
+Cell[CellGroupData[{
+
+Cell["Author and contact", "Section"],
+
+Cell["Ghetea Patrick", "Subsection"],
+
+Cell[TextData[{"GitHub: ", ButtonBox["@ghetea-patrick", BaseStyle->"Hyperlink", ButtonData->{URL["https://github.com/ghetea-patrick"], None}], "\nEmail (primary): ", ButtonBox["gheteapatrick@gmail.com", BaseStyle->"Hyperlink", ButtonData->{URL["mailto:gheteapatrick@gmail.com"], None}], "\nEmail (alternative): ", ButtonBox["patrick_ghetea@outlook.com", BaseStyle->"Hyperlink", ButtonData->{URL["mailto:patrick_ghetea@outlook.com"], None}]}], "Text"],
+
+Cell["Copyright (c) 2026 Ghetea Patrick. All rights reserved.", "Caption"]
+
+}, Open]]
+
+}, Open]]
+
+},
+WindowTitle->"JITML — A self-evolving architecture",
+WindowSize->{1280, 900},
+WindowMargins->{{Automatic, Automatic}, {Automatic, Automatic}},
+LightDark->"Dark",
+ScreenStyleEnvironment->"Working",
+ShowCellBracket->True,
+Background->RGBColor[0.055, 0.067, 0.086],
+TaggingRules->{"PresenterSettings"->{"ShowNavigationBar"->False, "SlideBreakStyles"->{"Title", "Chapter", "Section"}, "ShowSlideBreaks"->True, "Theme"->{"ThemeName"->"Facet", "FontSetName"->"Facet", "ColorSetName"->"Default"}}},
+StyleHints-><|"MagnificationScale"->1.|>,
+StyleDefinitions->Notebook[{
+   Cell[
+    StyleData[
+    StyleDefinitions -> 
+     FrontEnd`FileName[{"PresenterTools"}, "Facet.nb", CharacterEncoding -> 
+       "UTF-8"]]], 
+   Cell[
+    CellGroupData[{
+      Cell[
+      "Notebook, FirstSlide", "Section", 
+       CellChangeTimes -> {{3.955626634391697*^9, 3.955626638818308*^9}}], 
+      Cell[
+       StyleData["Notebook"], 
+       StyleHints -> <|
+        "CodeFont" -> "Source Code Pro", 
+         "ColorSet" -> <|"Display1" -> LightDarkSwitched[
+             RGBColor[0.866667, 0.0666667, 0], 
+             RGBColor[0.9726, 0.30195, 0.30195]], "Display2" -> 
+           LightDarkSwitched[
+             RGBColor[0.67, 0.0666667, 0], 
+             RGBColor[0.8039, 0.0628, 0.]], "Display3" -> LightDarkSwitched[
+             RGBColor[0.866667, 0.0666667, 0], 
+             RGBColor[0.8039, 0.0628, 0.]], "Text1" -> LightDarkSwitched[
+             GrayLevel[0.1], 
+             GrayLevel[0.75]], "Text2" -> LightDarkSwitched[
+             GrayLevel[1], 
+             GrayLevel[0.75]], "Text3" -> LightDarkSwitched[
+             GrayLevel[0], 
+             GrayLevel[0.75]], "Text1Reverse" -> GrayLevel[0.75], 
+           "Text2Reverse" -> GrayLevel[0.75], "Text3Reverse" -> 
+           GrayLevel[0.75], "Dingbat" -> LightDarkSwitched[
+             RGBColor[0.67, 0.0666667, 0], 
+             Hue[1, 0.84, 0.925]], "Default" -> LightDarkSwitched[
+             GrayLevel[0.1], 
+             GrayLevel[0.75]], "Background" -> GrayLevel[1]|>, 
+         "FontSet" -> <|
+          "Display1" -> "Source Sans Pro", "Display2" -> "Source Sans Pro", 
+           "Display3" -> "Source Sans Pro", "Text1" -> "Source Sans Pro", 
+           "Text2" -> "Source Sans Pro", "Text3" -> "Source Sans Pro", 
+           "Dingbat" -> "Source Sans Pro", "Default" -> "Source Sans Pro"|>, 
+         "SlideBreakStyles" -> {}|>, Background->RGBColor[0.055, 0.067, 0.086], FontColor->RGBColor[0.89, 0.915, 0.945], FontFamily->"Source Sans Pro", FontSize->15, PageWidth->WindowWidth, DefaultNewCellStyle->"Text"], 
+      Cell[StyleData["FirstSlide"], PrivateCellOptions->{"PagewiseNotebookBaseStyle"->{BackgroundAppearance->None}}, BackgroundAppearance->None]}, 
+     Closed]], 
+   Cell[
+    CellGroupData[{
+      Cell[
+      "Title, Subtitle", "Section", 
+       CellChangeTimes -> {{3.955626597453699*^9, 3.955626601223709*^9}}], 
+      Cell[StyleData["Title"], CellMargins->{{44, 44}, {14, 36}}, CellFrame->{{4, 0}, {0, 0}}, CellFrameColor->RGBColor[0.973, 0.428, 0.424], CellFrameMargins->{{18, 18}, {16, 16}}, Background->RGBColor[0.16, 0.091, 0.102], FontColor->RGBColor[0.973, 0.428, 0.424], FontSize->34, FontWeight->"Bold", FontTracking->"Plain", FontVariations->{"CapsType"->"Normal"}], 
+      Cell[
+       CellGroupData[{
+         Cell[StyleData["Subtitle"], CellMargins->{{44, 44}, {12, 8}}, Background->RGBColor[0.055, 0.067, 0.086], FontColor->RGBColor[0.89, 0.915, 0.945], FontSize->22, FontTracking->"Plain"], 
+         Cell[
+          StyleData["Subtitle", "Slideshow Working"], 
+          CellMargins -> {{Inherited, Inherited}, {Inherited, -1}}], 
+         Cell[
+          StyleData["Subtitle", "Scrolling Presentation"], 
+          CellMargins -> {{Inherited, Inherited}, {Inherited, -1}}]}, 
+        Closed]]}, Closed]], 
+   Cell[
+    CellGroupData[{
+      Cell[
+      "Section, Subsection, etc.", "Section", 
+       CellChangeTimes -> {{3.9556265762677746`*^9, 3.9556265799117393`*^9}}], 
+      Cell[StyleData["Section"], CellMargins->{{44, 44}, {14, 32}}, CellFrame->0, Background->RGBColor[0.055, 0.067, 0.086], FontColor->RGBColor[0.973, 0.428, 0.424], FontSize->26, FontWeight->"Bold", FontTracking->"Plain", FontVariations->{"CapsType"->"Normal"}], 
+      Cell[
+       CellGroupData[{
+         Cell[StyleData["Subsection"], CellMargins->{{44, 44}, {10, 24}}, Background->RGBColor[0.055, 0.067, 0.086], FontColor->RGBColor[0.89, 0.915, 0.945], FontSize->20, FontWeight->"Bold", FontTracking->"Plain", FontVariations->{"CapsType"->"Normal"}], 
+         Cell[
+          StyleData["Subsection", "Slideshow Working"], FontSize -> 20], 
+         Cell[
+          StyleData["Subsection", "Slideshow Presentation"], FontSize -> 20]},
+         Closed]], 
+      Cell[
+       CellGroupData[{
+         Cell[StyleData["Subsubsection"], CellMargins->{{44, 44}, {8, 18}}, Background->RGBColor[0.055, 0.067, 0.086], FontColor->RGBColor[0.89, 0.915, 0.945], FontSize->16, FontWeight->"Bold", FontTracking->"Plain"], 
+         Cell[
+          StyleData["Subsubsection", "Slideshow Working"], FontSize -> 18, 
+          FontWeight -> "DemiBold"], 
+         Cell[
+          StyleData["Subsubsection", "Slideshow Presentation"], FontSize -> 
+          18, FontWeight -> "DemiBold"]}, Closed]], 
+      Cell[
+       CellGroupData[{
+         Cell[
+          StyleData["Subsubsubsection"], FontColor -> Dynamic[
+            AbsoluteCurrentValue[{StyleHints, "ColorSet", "Display2"}]]], 
+         Cell[
+          StyleData["Subsubsubsection", "Slideshow Working"], FontSize -> 18, 
+          FontWeight -> "DemiBold", FontTracking -> "Plain"], 
+         Cell[
+          StyleData["Subsubsubsection", "Slideshow Presentation"], FontSize -> 
+          18, FontWeight -> "DemiBold", FontTracking -> "Plain"]}, Closed]], 
+      Cell[
+       CellGroupData[{
+         Cell[
+          StyleData["Subsubsubsubsection"], FontSize -> 18, FontColor -> 
+          Dynamic[
+            AbsoluteCurrentValue[{StyleHints, "ColorSet", "Display1"}]]], 
+         Cell[
+          StyleData["Subsubsubsubsection", "Slideshow Working"], FontSize -> 
+          18], 
+         Cell[
+          StyleData["Subsubsubsubsection", "Slideshow Presentation"], 
+          FontSize -> 18]}, Closed]]}, Closed]], 
+   Cell[
+    CellGroupData[{
+      Cell[
+      "Other styles", "Section", 
+       CellChangeTimes -> {{3.955626619923746*^9, 3.95562662203994*^9}}], 
+      Cell[
+       CellGroupData[{
+         Cell[
+          StyleData["InputOnly"], FontSize -> 13], 
+         Cell[
+          StyleData["InputOnly", "SlideShow"], 
+          CellMargins -> {{100, 10}, {8, 15}}], 
+         Cell[
+          StyleData["InputOnly", "Slideshow Working"], 
+          CellMargins -> {{92, 21}, {4, 7}}, 
+          LinebreakAdjustments -> {1, 2., 12., 1., 1.}, FontSize -> 13], 
+         Cell[
+          StyleData[
+          "InputOnly", "Slideshow Presentation", StyleDefinitions -> 
+           StyleData["InputOnly", "Slideshow Working"]]], 
+         Cell[
+          StyleData[
+          "InputOnly", "Scrolling Presentation", StyleDefinitions -> 
+           StyleData["InputOnly", "Slideshow Working"]]], 
+         Cell[
+          StyleData["InputOnly", "Printout"], 
+          CellMargins -> {{49, Inherited}, {Inherited, Inherited}}, 
+          LinebreakAdjustments -> {0.85, 2, 10, 1, 1}]}, Closed]], 
+      Cell[StyleData["Hyperlink"], FontColor->RGBColor[0.35, 0.79, 0.72]], 
+      Cell[
+       StyleData[All], BackgroundAppearance -> None], 
+      Cell[
+       StyleData["Epigraph"], FontColor -> Dynamic[
+         AbsoluteCurrentValue[{StyleHints, "ColorSet", "Display2"}]]]}, 
+     Closed]],
+   Cell[StyleData["SlideShowNavigationBar"], CellMargins->{{0, 0}, {0, 0}}, CellFrame->0, CellOpen->False],
+   Cell[StyleData["Text"], CellMargins->{{44, 44}, {8, 8}}, Background->RGBColor[0.055, 0.067, 0.086], FontColor->RGBColor[0.89, 0.915, 0.945], FontFamily->"Source Sans Pro", FontSize->15, LineSpacing->{1.25, 0}, ParagraphSpacing->{0, 8}, ShowAutoSpellCheck->False],
+   Cell[StyleData["Caption", StyleDefinitions->StyleData["Text"]], FontColor->RGBColor[0.61, 0.67, 0.75], FontSize->12, CellMargins->{{44, 44}, {12, 4}}],
+   Cell[StyleData["Program"], CellMargins->{{44, 32}, {14, 12}}, CellFrame->{{1, 0}, {0, 0}}, CellFrameColor->RGBColor[0.235, 0.279, 0.337], CellFrameMargins->{{14, 14}, {12, 12}}, Background->RGBColor[0.086, 0.105, 0.133], FontColor->RGBColor[0.89, 0.915, 0.945], FontFamily->"Source Code Pro", FontSize->12, FontWeight->"Plain", FontTracking->"Plain", LineSpacing->{1.15, 0}, PageWidth->Infinity, LineBreakWithin->False, Hyphenation->False, AutoIndent->False, AutoSpacing->False, ShowAutoStyles->False, ShowSyntaxStyles->False, ShowAutoSpellCheck->False, ShowStringCharacters->True, Evaluatable->False, FormatType->TextForm, TabSpacings->{4}],
+   Cell[StyleData["Diagram", StyleDefinitions->StyleData["Text"]], CellMargins->{{44, 32}, {12, 12}}, TextAlignment->Left, Evaluatable->False, CellLabel->None]}, Visible -> False, FrontEndVersion -> 
+  "14.3 for Microsoft Windows (64-bit) (May 27, 2025)", StyleDefinitions -> 
+  "PrivateStylesheetFormatting.nb"]
+]
+(* End of Notebook Content *)

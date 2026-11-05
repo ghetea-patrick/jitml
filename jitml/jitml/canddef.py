@@ -1,0 +1,6 @@
+def of_TGP[T](init: T, num: int) -> list[T]:
+    ...
+
+
+def of_MTP[T](init: T, num: int) -> list[T]:
+    ...
